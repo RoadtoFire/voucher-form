@@ -59,6 +59,12 @@
       font-weight: 600; font-size: 1rem; margin-top: 1rem;
       padding: 0.75rem; background: #eafaf0; border-radius: 8px;
     }
+    .already-submitted {
+      display: none; text-align: center; color: #c0392b;
+      font-weight: 600; font-size: 1rem;
+      padding: 1.5rem; background: #fdf0ef; border-radius: 8px;
+      border: 1.5px solid #e74c3c;
+    }
     .footer-note { text-align: center; font-size: 0.72rem; color: #bbb; margin-top: 1.5rem; }
   </style>
 </head>
@@ -70,6 +76,11 @@
     
     <div class="heading">Free Voucher Redemption</div>
     <div class="subheading">Please fill out your details below to claim.</div>
+
+    <!-- Already submitted message -->
+    <div class="already-submitted" id="alreadySubmitted">
+      ⚠️ You have already claimed a voucher from this device.
+    </div>
     
     <form id="voucherForm">
       <div class="section-label">Personal Info</div>
@@ -141,6 +152,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
     emailjs.init('4ve4-5FuEVsGrVVdq');
+
+    // Check on page load if already submitted from this device
+    if (localStorage.getItem('voucher_claimed') === 'true') {
+      document.getElementById('voucherForm').style.display = 'none';
+      document.getElementById('alreadySubmitted').style.display = 'block';
+    }
     
     document.getElementById('voucherForm').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -149,7 +166,6 @@
       btn.textContent = 'Submitting...';
       btn.disabled = true;
       
-      // Formatting the Address Line 2 so it doesn't leave an awkward space if left empty
       const addressLine2 = document.getElementById('address2').value ? ' ' + document.getElementById('address2').value : '';
       const fullAddress = document.getElementById('street').value + addressLine2 + ', ' + 
                           document.getElementById('city').value + ', ' + 
@@ -168,6 +184,8 @@
       
       emailjs.send('service_e32jlp7', 'template_f5gstp8', templateParams)
         .then(() => {
+          // Save to localStorage so this device can't submit again
+          localStorage.setItem('voucher_claimed', 'true');
           document.getElementById('successMsg').style.display = 'block';
           document.getElementById('voucherForm').reset();
           btn.textContent = '🎟️ Redeem My Voucher';
